@@ -1,19 +1,18 @@
 import java.time.Duration;
 import java.time.Instant;
-import java.util.Collections;
-import java.util.Map;
+
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 
-public class SynchronizedHashMap implements Runnable {
-    private static Map<Integer,Integer> synchronizedMap = Collections.synchronizedMap(new HashMap<>());
+public class SynchronizedHashTable implements Runnable {
+    private static Hashtable<Integer,Integer> table = new Hashtable<>();
     private static AtomicInteger counter = new AtomicInteger(0);
 
     private static int numElements = 100;
     private static int perThreadNumElements = 1;
     private static final Object lock = new Object();
 
-    public SynchronizedHashMap(){
+    public SynchronizedHashTable(){
 
     }
 
@@ -25,7 +24,7 @@ public class SynchronizedHashMap implements Runnable {
         Instant start = Instant.now();
 
         for(int i = 0; i < 100; i++) {
-            Thread thread = new Thread(new SynchronizedHashMap());
+            Thread thread = new Thread(new SynchronizedHashTable());
             thread.start();
         }
         Instant end = Instant.now();
@@ -42,21 +41,27 @@ public class SynchronizedHashMap implements Runnable {
     public void add() {
         synchronized (lock) {
             for (int i = 0; i < this.perThreadNumElements; i++) {
-                synchronizedMap.put(counter.getAndIncrement(), 0);
+
+                table.put(counter.getAndIncrement(), 0);
             }
         }
     }
 
+
     public int getSize() {
-        return synchronizedMap.size();
+        return table.size();
 
     }
 
     public void print() {
-        for(Integer i: synchronizedMap.keySet()) {
+        for(Integer i: table.keySet()) {
             String key = i.toString();
-            String value = synchronizedMap.get(i).toString();
+            String value = table.get(i).toString();
             System.out.println("Key: " + key + " Value: " + value);
         }
+    }
+
+    public void printCounter() {
+        System.out.println(counter.get());
     }
 }

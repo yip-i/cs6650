@@ -1,3 +1,4 @@
+import java.util.ArrayList;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.time.Duration;
 import java.time.Instant;
@@ -26,7 +27,6 @@ public class Counter implements Runnable {
 
     public void start() {
         Instant start = Instant.now();
-
         for(int i = 0; i < numThreads; i++) {
             Thread thread = new Thread(new Counter());
             thread.start();

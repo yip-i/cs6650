@@ -22,22 +22,35 @@ public class CollectionsTest {
     @Test
     public void SynchronizedHashMapTest() {
         SynchronizedHashMap sync = new SynchronizedHashMap();
-        sync.start(1000);
+        sync.start(100_000);
         //sync.print();
-        assertEquals(1000, sync.getSize());
+        assertEquals(100_000, sync.getSize());
     }
+
+
 
 
     @Test
-    public void SynchronizedHashMapTest1() {
-        SynchronizedHashMap sync = new SynchronizedHashMap();
-        for(int i = 0; i < 2; i++) {
-            sync.start(100000);
-        }
+    public void SynchronizedHashTableTest() {
+
+        SynchronizedHashTable table = new SynchronizedHashTable();
+        table.start(10_000);
         //sync.print();
-        assertEquals(200000, sync.getSize());
+        table.printCounter();
+        assertEquals(10000, table.getSize());
     }
 
+    @Test
+    public void ConcurrentHashMapTest() {
+
+        ConcurrentHashMap1 map = new ConcurrentHashMap1();
+        map.start(1_000);
+        //sync.print();
+        map.printCounter();
+
+        assertEquals(1_000, map.getSize());
+
+    }
 
 
 }
