@@ -3,6 +3,9 @@ import java.time.Instant;
 import java.util.Collections;
 import java.util.Map;
 import java.util.*;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public class SynchronizedHashMap implements Runnable {
@@ -23,11 +26,20 @@ public class SynchronizedHashMap implements Runnable {
         this.numElements = numElements;
         this.perThreadNumElements = this.numElements / 100;
         Instant start = Instant.now();
+        ExecutorService es = Executors.newCachedThreadPool();
 
         for(int i = 0; i < 100; i++) {
-            Thread thread = new Thread(new SynchronizedHashMap());
-            thread.start();
+            es.execute(new SynchronizedHashMap());
+
         }
+
+        es.shutdown();
+        try {
+            boolean finished = es.awaitTermination(1, TimeUnit.MINUTES);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+
         Instant end = Instant.now();
         Duration timeElapsed = Duration.between(start,end);
         System.out.println("Elapsed time: " + timeElapsed.getSeconds() + "." + timeElapsed.getNano());

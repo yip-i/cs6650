@@ -22,9 +22,9 @@ public class CollectionsTest {
     @Test
     public void SynchronizedHashMapTest() {
         SynchronizedHashMap sync = new SynchronizedHashMap();
-        sync.start(100_000);
+        sync.start(1000_000);
         //sync.print();
-        assertEquals(100_000, sync.getSize());
+        assertEquals(1000_000, sync.getSize());
     }
 
 
@@ -34,10 +34,10 @@ public class CollectionsTest {
     public void SynchronizedHashTableTest() {
 
         SynchronizedHashTable table = new SynchronizedHashTable();
-        table.start(10_000);
+        table.start(1000_000);
         //sync.print();
         table.printCounter();
-        assertEquals(10000, table.getSize());
+        assertEquals(1000_000, table.getSize());
     }
 
     @Test
