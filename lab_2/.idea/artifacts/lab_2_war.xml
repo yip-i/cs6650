@@ -3,6 +3,12 @@
     <output-path>$PROJECT_DIR$/out/artifacts/lab_2_war</output-path>
     <root id="archive" name="lab_2_war.war">
       <element id="artifact" artifact-name="lab_2:war exploded" />
+      <element id="directory" name="WEB-INF">
+        <element id="directory" name="lib">
+          <element id="file-copy" path="$PROJECT_DIR$/gson-2.8.9.jar" />
+          <element id="library" level="project" name="Maven: com.google.code.gson:gson:2.8.9" />
+        </element>
+      </element>
     </root>
   </artifact>
 </component>

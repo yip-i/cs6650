@@ -8,7 +8,7 @@ public class CollectionsTest {
     public void collectionsTest1(){
         Collections1 collections = new Collections1();
 
-        int numElements = 100_000;
+        int numElements = 100;
         collections.addVector(numElements);
         collections.addList(numElements);
         collections.addHashMap(numElements);
@@ -44,11 +44,11 @@ public class CollectionsTest {
     public void ConcurrentHashMapTest() {
 
         ConcurrentHashMap1 map = new ConcurrentHashMap1();
-        map.start(1_000);
+        map.start(10000_000);
         //sync.print();
         map.printCounter();
 
-        assertEquals(1_000, map.getSize());
+        assertEquals(10000_000, map.getSize());
 
     }
 

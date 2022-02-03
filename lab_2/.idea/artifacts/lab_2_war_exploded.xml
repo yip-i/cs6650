@@ -2,10 +2,13 @@
   <artifact type="exploded-war" name="lab_2:war exploded">
     <output-path>$PROJECT_DIR$/out/artifacts/lab_2_war_exploded</output-path>
     <root id="root">
-      <element id="javaee-facet-resources" facet="lab_2/web/Web" />
       <element id="directory" name="WEB-INF">
         <element id="directory" name="classes">
           <element id="module-output" name="lab_2" />
+        </element>
+        <element id="directory" name="lib">
+          <element id="library" level="project" name="Maven: com.google.code.gson:gson:2.8.9" />
+          <element id="file-copy" path="$PROJECT_DIR$/gson-2.8.9.jar" />
         </element>
       </element>
     </root>
