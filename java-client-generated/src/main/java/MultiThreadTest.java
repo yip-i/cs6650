@@ -12,7 +12,7 @@ import java.util.concurrent.TimeUnit;
 
 public class MultiThreadTest implements Runnable {
     SkiersApi apiInstance = new SkiersApi();
-    String basePath = "http://54.244.63.104:8080/servlet_war";
+    String basePath = "http://localhost:8080/servlet_war_exploded";
     ApiClient client = apiInstance.getApiClient();
     Integer resortID = 56; // Integer | ID of the resort
     String seasonID = "56"; // String | ID of the season
@@ -26,10 +26,10 @@ public class MultiThreadTest implements Runnable {
     @Override
     public void run() {
         try {
-//            ApiResponse res = apiInstance.getSkierDayVerticalWithHttpInfo(resortID, seasonID, dayID, skierID);
-//            System.out.println(res.getStatusCode());
+            ApiResponse res = apiInstance.getSkierDayVerticalWithHttpInfo(resortID, seasonID, dayID, skierID);
+            System.out.println(res.getStatusCode());
             Integer verticalResult = apiInstance.getSkierDayVertical(resortID, seasonID, dayID, skierID);
-//            System.out.println(verticalResult);
+            System.out.println(verticalResult);
         } catch (ApiException e) {
             System.err.println("Exception when calling SkiersApi#getSkierDayVertical");
             e.printStackTrace();
@@ -40,7 +40,7 @@ public class MultiThreadTest implements Runnable {
 
     public static void main(String[] args) throws InterruptedException {
 
-        ExecutorService es = Executors.newFixedThreadPool(100);
+        ExecutorService es = Executors.newFixedThreadPool(300);
         Instant start = Instant.now();
 
         for(int i = 0; i < 100; i++) {
