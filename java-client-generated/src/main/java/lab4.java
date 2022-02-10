@@ -4,6 +4,8 @@ import io.swagger.client.ApiException;
 import io.swagger.client.ApiResponse;
 import io.swagger.client.api.SkiersApi;
 import io.swagger.client.model.LiftRide;
+import org.threeten.bp.Duration;
+import org.threeten.bp.Instant;
 
 import java.io.IOException;
 import java.net.HttpURLConnection;
@@ -101,6 +103,11 @@ public class lab4 implements Runnable {
         return;
     }
 
+
+    /**
+     * Input the parameters with the name followed by a space.
+     * @param args
+     */
     public static void main(String[] args) {
         int numThreads = - 1;
         int numSkiers = -1;
@@ -136,12 +143,13 @@ public class lab4 implements Runnable {
             System.out.println("Run input error");
             return;
         }
-        basePath = basePath + ipAddress + ":8080/servlet_war_exploded";
+        basePath = basePath + ipAddress + ":8080/servlet_war";
         System.out.println(basePath);
 
         lab4 stats = new lab4(0,0,0,0,0,0,0, "");
 
         ExecutorService es = Executors.newFixedThreadPool(numThreads);
+        Instant start = Instant.now();
 
         //Start up
         int startupNumThreads = numThreads/ 4;
@@ -151,12 +159,15 @@ public class lab4 implements Runnable {
             es.execute(new lab4(skierInterval * i, (skierInterval * i) + skierInterval - 1, startupNumThreads, numLifts, (int) (numRuns * 0.2), 0, 90, basePath));
 
         }
+//        System.out.println("Skier interval: "+ skierInterval + " startup num threads: " + startupNumThreads );
+
         es.shutdown();
         try {
             boolean finished = es.awaitTermination(1, TimeUnit.MINUTES);
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
+
         //Reset atomic integer
         stats.resetAtomicInteger();
 
@@ -188,7 +199,7 @@ public class lab4 implements Runnable {
             endNumThreads = 1;
         }
         int endSkierInterval = numSkiers / endNumThreads;
-        for(int i = 0; i < startupNumThreads; i++) {
+        for(int i = 0; i < endNumThreads; i++) {
 
             es.execute(new lab4(endSkierInterval * i, (endSkierInterval * i) + endSkierInterval, endNumThreads, numLifts, (int) (numRuns * 0.1), 361, 420, basePath));
 
@@ -199,9 +210,22 @@ public class lab4 implements Runnable {
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
+        Instant end = Instant.now();
+        Duration duration = Duration.between(start, end);
 
         System.out.println(stats.getStatusCodes().size());
-
+        Vector v = stats.getStatusCodes();
+        int numberOf201 = 0;
+        for(int i = 0; i < v.size(); i++ ) {
+            if(v.get(i).equals(201)) {
+                numberOf201 ++;
+            }
+        }
+        System.out.println("Correct response codes: " + numberOf201);
+        System.out.println("Incorrect response codes: " + (v.size() - numberOf201));
+        System.out.println("duration:" + duration);
+        System.out.println(duration.getSeconds());
+        System.out.println(duration.getNano());
     }
 
 
