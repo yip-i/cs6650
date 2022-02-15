@@ -14,14 +14,19 @@ import java.net.ProtocolException;
 import java.net.URL;
 import java.util.Random;
 import java.util.Vector;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
+
+
 public class lab4 implements Runnable {
 
     static AtomicInteger startup = new AtomicInteger(0);
+    static AtomicInteger peak = new AtomicInteger(0);
+    static AtomicInteger cooldown = new AtomicInteger(0);
     static AtomicInteger numRequests = new AtomicInteger(0);
     static Vector<Integer> statusCodes = new Vector<>();
 
@@ -32,12 +37,13 @@ public class lab4 implements Runnable {
     int numRuns;
     int startTime;
     int endTime;
+    CountDownLatch countDownLatch;
     SkiersApi apiInstance = new SkiersApi();
     ApiClient client = apiInstance.getApiClient();
 
 
 
-    public lab4(int startID, int endID, int numThreads, int numLifts, int numRuns, int startTime, int endTime, String basepath) {
+    public lab4(int startID, int endID, int numThreads, int numLifts, int numRuns, int startTime, int endTime, String basepath, CountDownLatch countDownLatch) {
         this.startID = startID;
         this.endID = endID;
         this.numThreads = numThreads;
@@ -45,12 +51,24 @@ public class lab4 implements Runnable {
         this.numRuns = numRuns;
         this.startTime = startTime;
         this.endTime = endTime;
-
+        this.countDownLatch = countDownLatch;
         client.setBasePath(basepath);
     }
 
     public void resetAtomicInteger() {
         startup.set(0);
+    }
+
+    public int getStartup(){
+        return startup.get();
+    }
+
+    public int getPeak(){
+        return peak.get();
+    }
+
+    public int getCooldown() {
+        return cooldown.get();
     }
 
     public Vector getStatusCodes() {
@@ -72,7 +90,7 @@ public class lab4 implements Runnable {
         Gson gson = new Gson();
         String request;
 
-        while(i < numRuns * (this.endID - this.startID) && startup.get() < numThreads * 0.2) {
+        while(i < numRuns * (this.endID - this.startID)) {
             i++;
 
             skierID = random.nextInt(endID - startID) + startID;
@@ -100,6 +118,7 @@ public class lab4 implements Runnable {
 
 //        System.out.println("I= " + i);
         startup.incrementAndGet();
+        this.countDownLatch.countDown();
         return;
     }
 
@@ -143,10 +162,8 @@ public class lab4 implements Runnable {
             System.out.println("Run input error");
             return;
         }
-        basePath = basePath + ipAddress + ":8080/servlet_war";
-        System.out.println(basePath);
+        basePath = basePath + ipAddress + ":8080/servlet_war_exploded";
 
-        lab4 stats = new lab4(0,0,0,0,0,0,0, "");
 
         ExecutorService es = Executors.newFixedThreadPool(numThreads);
         Instant start = Instant.now();
@@ -154,62 +171,67 @@ public class lab4 implements Runnable {
         //Start up
         int startupNumThreads = numThreads/ 4;
         int skierInterval = numSkiers / startupNumThreads;
+        CountDownLatch startupCountdown = new CountDownLatch((int) (startupNumThreads * 0.2));
+        lab4 stats = new lab4(0,0,0,0,0,0,0, "", startupCountdown);
+
         for(int i = 0; i < startupNumThreads; i++) {
 
-            es.execute(new lab4(skierInterval * i, (skierInterval * i) + skierInterval - 1, startupNumThreads, numLifts, (int) (numRuns * 0.2), 0, 90, basePath));
+            es.execute(new lab4(skierInterval * i, (skierInterval * i) + skierInterval - 1, startupNumThreads, numLifts, (int) (numRuns * 0.2), 0, 90, basePath, startupCountdown));
 
         }
+        try {
+            startupCountdown.await();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+
+        //Peak
+//        es = Executors.newFixedThreadPool(numThreads);
+        int peakSkierInterval = numSkiers / numThreads;
+        CountDownLatch peakCountdown = new CountDownLatch((int) (numThreads * 0.2));
+        for(int i = 0; i < numThreads; i++) {
+
+            es.execute(new lab4(peakSkierInterval * i, (peakSkierInterval * i) + peakSkierInterval - 1, numThreads, numLifts, (int) (numRuns * 0.6), 361, 420, basePath, peakCountdown));
+
+        }
+
+        try {
+            peakCountdown.await();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+
 //        System.out.println("Skier interval: "+ skierInterval + " startup num threads: " + startupNumThreads );
+
+
+        //End
+//        stats.resetAtomicInteger();
+        int endNumThreads = numThreads / 10;
+        if (endNumThreads < 1) {
+            endNumThreads = 1;
+        }
+        CountDownLatch cooldownCountdown = new CountDownLatch((int) (endNumThreads * 0.2));
+
+        int endSkierInterval = numSkiers / endNumThreads;
+        for(int i = 0; i < endNumThreads; i++) {
+
+            es.execute(new lab4(endSkierInterval * i, (endSkierInterval * i) + endSkierInterval, endNumThreads, numLifts, (int) (numRuns * 0.1), 361, 420, basePath, cooldownCountdown));
+
+        }
 
         es.shutdown();
         try {
-            boolean finished = es.awaitTermination(1, TimeUnit.MINUTES);
+            boolean finished = es.awaitTermination(1, TimeUnit.HOURS);
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
 
         //Reset atomic integer
-        stats.resetAtomicInteger();
-
-        //Peak
-        es = Executors.newFixedThreadPool(numThreads);
-        int peakSkierInterval = numSkiers / numThreads;
-
-        for(int i = 0; i < numThreads; i++) {
-
-            es.execute(new lab4(peakSkierInterval * i, (peakSkierInterval * i) + peakSkierInterval - 1, numThreads, numLifts, (int) (numRuns * 0.6), 361, 420, basePath));
-
-        }
-        es.shutdown();
-        try {
-            boolean finished = es.awaitTermination(1, TimeUnit.MINUTES);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
+//        stats.resetAtomicInteger();
 
 
 
-        //End
-        stats.resetAtomicInteger();
 
-        es = Executors.newFixedThreadPool(numThreads);
-
-        int endNumThreads = numThreads / 10;
-        if (endNumThreads < 1) {
-            endNumThreads = 1;
-        }
-        int endSkierInterval = numSkiers / endNumThreads;
-        for(int i = 0; i < endNumThreads; i++) {
-
-            es.execute(new lab4(endSkierInterval * i, (endSkierInterval * i) + endSkierInterval, endNumThreads, numLifts, (int) (numRuns * 0.1), 361, 420, basePath));
-
-        }
-        es.shutdown();
-        try {
-            boolean finished = es.awaitTermination(1, TimeUnit.MINUTES);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
         Instant end = Instant.now();
         Duration duration = Duration.between(start, end);
 
@@ -226,6 +248,9 @@ public class lab4 implements Runnable {
         System.out.println("duration:" + duration);
         System.out.println(duration.getSeconds());
         System.out.println(duration.getNano());
+        System.out.println(basePath);
+
+
     }
 
 
