@@ -1,0 +1,24 @@
+{
+    "$schema": "http://json-schema.org/draft-04/schema#",
+    "title": "Product",
+    "description": "A product from the catalog",
+    "type": "object",
+    "properties": {
+    "time": {
+        "description": "Time of the ride",
+            "type": "integer",
+                "minimum": 0
+    },
+    "liftID": {
+        "description": "ID of the lift taken",
+            "type": "integer",
+                "minimum": 0
+    },
+    "waitTime": {
+        "type": "integer",
+            "minimum": 0,
+            "exclusiveMinimum": true
+    }
+},
+    "required": ["time", "liftID", "waitTime"]
+}
